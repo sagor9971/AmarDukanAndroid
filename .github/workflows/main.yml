@@ -1,191 +1,33 @@
-package com.amardokan.app
+name: Build Amar Dokan APK
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-        setContent {
-            AmarDokanApp()
-        }
-    }
-}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-data class Product(
-    val name: String,
-    val price: String,
-    val category: String
-)
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-@Composable
-fun AmarDokanApp() {
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-    val products = listOf(
-        Product("Premium Men's T-Shirt", "৳499", "T-Shirt"),
-        Product("Classic Black T-Shirt", "৳499", "T-Shirt"),
-        Product("Premium Polo Shirt", "৳699", "Shirt"),
-        Product("Men's Casual Shirt", "৳799", "Shirt")
-    )
+      - name: Build APK
+        run: ./gradlew assembleDebug
 
-    MaterialTheme {
-
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = Color(0xFFF5F5F5)
-        ) {
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-
-                item {
-
-                    Text(
-                        text = "আমার দোকান",
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-
-                    Text(
-                        text = "Men's Fashion",
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text("পণ্য খুঁজুন...")
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "Categories",
-                        fontSize = 21.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CategoryButton("T-Shirt")
-                        CategoryButton("Shirt")
-                        CategoryButton("Pant")
-                    }
-
-                    Spacer(modifier = Modifier.height(22.dp))
-
-                    Text(
-                        text = "Popular Products",
-                        fontSize = 21.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                items(products) { product ->
-                    ProductCard(product)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CategoryButton(text: String) {
-
-    Button(
-        onClick = {},
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        Text(text)
-    }
-}
-
-@Composable
-fun ProductCard(product: Product) {
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .size(90.dp)
-                    .background(
-                        Color.LightGray,
-                        RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("IMAGE")
-            }
-
-            Spacer(modifier = Modifier.width(15.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = product.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = product.category,
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = product.price,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFD32F2F)
-                )
-            }
-        }
-    }
-}
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Amar-Dokan-Debug-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
